@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atonns Tecnologia - Gestão de Aparelhos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --black: #000000;
+            --dark-gray: #1C2526;
+            --metal-gray: #A9A9A9;
+            --light-gray: #D3D3D3;
+            --silver: #B0B7C0;
+            --white: #FFFFFF;
+            --gradient-start: #2C3E50;
+            --gradient-end: #4CA1AF;
+            --accent: #00B4DB;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+        }
+        
+        .device-card {
+            width: 100%;
+            height: 380px;
+            background: linear-gradient(145deg, #1E272E, #2C3E50);
+            border: 1px solid rgba(169, 169, 169, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .device-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #0083B0);
+        }
+        
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 180, 219, 0.3);
+            border-color: rgba(0, 180, 219, 0.5);
+        }
+        
+        .phone-image {
+            height: 100px;
+            filter: drop-shadow(0 0 12px rgba(0, 180, 219, 0.4));
+            transition: all 0.3s ease;
+        }
+        
+        .device-card:hover .phone-image {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 15px rgba(0, 180, 219, 0.6));
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            box-shadow: 0 0 5px currentColor;
+        }
+        
+        .status-green {
+            background-color: #00C853;
+            color: #00C853;
+        }
+        
+        .status-yellow {
+            background-color: #FFD600;
+            color: #FFD600;
+        }
+        
+        .status-red {
+            background-color: #FF3D00;
+            color: #FF3D00;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #00B4DB, #0083B0);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1000;
+            font-weight: 500;
+            transform: translate(-50%, 20px);
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+        
+        .dropdown-option:hover {
+            background-color: rgba(0, 180, 219, 0.1) !important;
+        }
+        
+        input, select {
+            background-color: rgba(30, 39, 46, 0.8) !important;
+            border: 1px solid rgba(169, 169, 169, 0.2) !important;
+            color: var(--white) !important;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px rgba(0, 180, 219, 0.2) !important;
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, var(--accent), #0083B0);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .save-btn:hover {
+            background: linear-gradient(135deg, #0083B0, var(--accent));
+            transform: scale(1.05);
+        }
+        
+        .filter-btn {
+            background: linear-gradient(135deg, var(--accent), #0083B0);
+            color: white;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .filter-btn:hover {
+            background: linear-gradient(135deg, #0083B0, var(--accent));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 180, 219, 0.3);
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .filter-section {
+            background: rgba(30, 39, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(169, 169, 169, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .phone-input-container {
+            position: relative;
+        }
+        
+        .phone-input-container::before {
+            content: '+55';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--metal-gray);
+            font-size: 0.9rem;
+        }
+        
+        .phone-input {
+            padding-left: 45px !important;
+        }
+        
+        .slot-select {
+            background-color: rgba(30, 39, 46, 0.8) !important;
+            border: 1px solid rgba(169, 169, 169, 0.2) !important;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .slot-select option {
+            background-color: var(--dark-gray);
+        }
+        
+        @media (max-width: 640px) {
+            .device-card {
+                height: auto;
+                min-height: 350px;
+            }
+            
+            .phone-image {
+                height: 80px;
+            }
+            
+            .filter-section {
+                padding: 1rem !important;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+            
+            .header-title {
+                font-size: 1.5rem !important;
+            }
+            
+            .header-subtitle {
+                font-size: 0.8rem !important;
+            }
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 39, 46, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0083B0;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <div class="flex justify-center items-center mb-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center mr-3 shadow-lg">
+                <i class="fas fa-mobile-alt text-white text-xl"></i>
+            </div>
+            <h1 class="header-title text-3xl md:text-4xl font-bold mb-2 header-gradient">
+                Atonns Tecnologia
+            </h1>
+        </div>
+        <p class="header-subtitle text-silver-300 opacity-80">Gestão Inteligente de Dispositivos Móveis</p>
+    </header>
+    
+    <!-- Filters -->
+    <div class="filter-section rounded-xl mb-8 p-4 md:p-6">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-sliders-h mr-2 text-accent"></i> Filtros Avançados
+        </h2>
+        <div class="filter-grid grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1 opacity-80">
+                    <i class="fas fa-user-shield mr-1"></i> Supervisor
+                </label>
+                <select id="supervisor-filter" class="w-full p-2 rounded text-sm">
+                    <option value="">Todos os Supervisores</option>
+                    <option value="Gabriel">Gabriel</option>
+                    <option value="Henrique">Henrique</option>
+                    <option value="Silveira">Silveira</option>
+                    <option value="Carlos">Carlos</option>
+                    <option value="Gustavo">Gustavo</option>
+                    <option value="Brito">Brito</option>
+                    <option value="Celso">Celso</option>
+                    <option value="Everton">Everton</option>
+                    <option value="Macedônio">Macedônio</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1 opacity-80">
+                    <i class="fab fa-whatsapp mr-1"></i> Status WhatsApp
+                </label>
+                <select id="status-filter" class="w-full p-2 rounded text-sm">
+                    <option value="">Todos os Status</option>
+                    <option value="green">Verde - Ativo</option>
+                    <option value="yellow">Amarelo - Em Ativação</option>
+                    <option value="red">Vermelho - Desativado</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1 opacity-80">
+                    <i class="fas fa-mobile-alt mr-1"></i> Número do Celular
+                </label>
+                <div class="phone-input-container">
+                    <input type="text" id="phone-filter" placeholder="Buscar por número" class="w-full p-2 rounded text-sm phone-input">
+                </div>
+            </div>
+            <div class="flex items-end">
+                <button id="apply-filter" class="filter-btn px-4 py-2 rounded-lg w-full font-medium text-sm">
+                    <i class="fas fa-filter mr-2"></i> Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="bg-gradient-to-r from-blue-900 to-teal-900 rounded-lg p-3 mb-6 flex flex-wrap justify-between items-center text-xs md:text-sm">
+        <div class="flex items-center mr-4 mb-2 md:mb-0">
+            <span class="status-dot status-green mr-2"></span>
+            <span class="opacity-90">Ativos: <span id="active-count" class="font-bold">0</span></span>
+        </div>
+        <div class="flex items-center mr-4 mb-2 md:mb-0">
+            <span class="status-dot status-yellow mr-2"></span>
+            <span class="opacity-90">Em Ativação: <span id="activating-count" class="font-bold">0</span></span>
+        </div>
+        <div class="flex items-center mr-4 mb-2 md:mb-0">
+            <span class="status-dot status-red mr-2"></span>
+            <span class="opacity-90">Desativados: <span id="inactive-count" class="font-bold">0</span></span>
+        </div>
+        <div class="flex items-center">
+            <i class="fas fa-mobile-alt mr-2 opacity-90"></i>
+            <span class="opacity-90">Total: <span id="total-count" class="font-bold">100</span> dispositivos</span>
+        </div>
+    </div>
+    
+    <!-- Devices Grid -->
+    <div id="devices-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+        <!-- Device cards will be generated here -->
+    </div>
+    
+    <!-- Floating Action Button -->
+    <button id="fab" class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-white shadow-xl hover:shadow-2xl transition-all duration-300 z-50">
+        <i class="fas fa-sync-alt text-xl"></i>
+    </button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize devices data
+            let devices = [];
+            const supervisors = ['Gabriel', 'Henrique', 'Silveira', 'Carlos', 'Gustavo', 'Brito', 'Celso', 'Everton', 'Macedônio'];
+            const statusOptions = [
+                { value: 'green', label: 'Verde - Ativo' },
+                { value: 'yellow', label: 'Amarelo - Em Ativação' },
+                { value: 'red', label: 'Vermelho - Desativado' }
+            ];
+            
+            // Load data from localStorage or initialize
+            function loadDevices() {
+                const savedDevices = localStorage.getItem('atonns-devices');
+                if (savedDevices) {
+                    devices = JSON.parse(savedDevices);
+                } else {
+                    // Initialize 100 devices with more realistic data
+                    for (let i = 1; i <= 100; i++) {
+                        devices.push({
+                            id: i,
+                            supervisor: supervisors[Math.floor(Math.random() * supervisors.length)],
+                            campaign: `Campanha ${String.fromCharCode(65 + (i % 26))}${Math.floor(Math.random() * 100)}`,
+                            phoneNumber: `(11) 9 ${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+                            whatsappSlots: [
+                                { type: 'Normal 1', status: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)] },
+                                { type: 'Business 1', status: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)] },
+                                { type: 'Normal 2', status: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)] },
+                                { type: 'Business 2', status: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)] }
+                            ],
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                    saveDevices();
+                }
+                updateStats();
+                renderDevices();
+            }
+            
+            // Save devices to localStorage
+            function saveDevices() {
+                localStorage.setItem('atonns-devices', JSON.stringify(devices));
+                updateStats();
+            }
+            
+            // Update statistics counters
+            function updateStats() {
+                let active = 0, activating = 0, inactive = 0;
+                
+                devices.forEach(device => {
+                    device.whatsappSlots.forEach(slot => {
+                        if (slot.status === 'green') active++;
+                        else if (slot.status === 'yellow') activating++;
+                        else inactive++;
+                    });
+                });
+                
+                document.getElementById('active-count').textContent = active;
+                document.getElementById('activating-count').textContent = activating;
+                document.getElementById('inactive-count').textContent = inactive;
+                document.getElementById('total-count').textContent = devices.length;
+            }
+            
+            // Show toast notification
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Format phone number
+            function formatPhoneNumber(value) {
+                if (!value) return value;
+                
+                const phoneNumber = value.replace(/[^\d]/g, '');
+                const phoneNumberLength = phoneNumber.length;
+                
+                if (phoneNumberLength < 2) return phoneNumber;
+                if (phoneNumberLength < 3) {
+                    return `(${phoneNumber.slice(0, 2)}`;
+                }
+                if (phoneNumberLength < 7) {
+                    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+                }
+                if (phoneNumberLength < 8) {
+                    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 3)} ${phoneNumber.slice(3)}`;
+                }
+                return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 3)} ${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
+            }
+            
+            // Render all devices
+            function renderDevices(filteredDevices = null) {
+                const container = document.getElementById('devices-container');
+                container.innerHTML = '';
+                
+                const devicesToRender = filteredDevices || devices;
+                
+                if (devicesToRender.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-10">
+                            <i class="fas fa-search fa-2x mb-4 opacity-50"></i>
+                            <p class="text-lg opacity-70">Nenhum dispositivo encontrado com os filtros aplicados</p>
+                            <button id="reset-filters" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-400 rounded-lg text-white">
+                                Limpar Filtros
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('reset-filters').addEventListener('click', function() {
+                        document.getElementById('supervisor-filter').value = '';
+                        document.getElementById('status-filter').value = '';
+                        document.getElementById('phone-filter').value = '';
+                        renderDevices();
+                    });
+                    
+                    return;
+                }
+                
+                devicesToRender.forEach(device => {
+                    const card = document.createElement('div');
+                    card.className = 'device-card rounded-lg flex flex-col';
+                    
+                    // Count status for this device
+                    let activeCount = 0, activatingCount = 0, inactiveCount = 0;
+                    device.whatsappSlots.forEach(slot => {
+                        if (slot.status === 'green') activeCount++;
+                        else if (slot.status === 'yellow') activatingCount++;
+                        else inactiveCount++;
+                    });
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-center items-center p-4 relative">
+                            <img src="https://cdn-icons-png.flaticon.com/512/0/191.png" alt="Smartphone" class="phone-image floating">
+                            <img src="https://cdn-icons-png.flaticon.com/512/197/197386.png" alt="Brasil" class="absolute top-2 right-2 w-5 h-5">
+                            <div class="absolute bottom-2 left-2 text-xs opacity-70">
+                                #${String(device.id).padStart(3, '0')}
+                            </div>
+                        </div>
+                        <div class="p-4 flex-grow flex flex-col">
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium mb-1 opacity-80">
+                                    <i class="fas fa-user-shield mr-1"></i> Supervisor
+                                </label>
+                                <select data-device-id="${device.id}" data-field="supervisor" class="w-full p-2 rounded mb-2 text-sm">
+                                    ${supervisors.map(s => 
+                                        `<option value="${s}" ${device.supervisor === s ? 'selected' : ''}>${s}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium mb-1 opacity-80">
+                                    <i class="fas fa-bullhorn mr-1"></i> Campanha
+                                </label>
+                                <div class="flex">
+                                    <input type="text" data-device-id="${device.id}" data-field="campaign" value="${device.campaign}" 
+                                        class="flex-grow p-2 rounded-l text-sm" placeholder="Nome da campanha">
+                                    <button data-device-id="${device.id}" data-field="campaign" class="save-btn px-3 rounded-r">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium mb-1 opacity-80">
+                                    <i class="fas fa-phone-alt mr-1"></i> Número
+                                </label>
+                                <div class="flex">
+                                    <input type="text" data-device-id="${device.id}" data-field="phoneNumber" value="${device.phoneNumber}" 
+                                        class="flex-grow p-2 rounded-l text-sm phone-input" placeholder="(00) 0 0000-0000">
+                                    <button data-device-id="${device.id}" data-field="phoneNumber" class="save-btn px-3 rounded-r">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="block text-sm font-medium opacity-80">
+                                        <i class="fab fa-whatsapp mr-1"></i> Status Chips
+                                    </label>
+                                    <div class="flex space-x-1">
+                                        <span class="text-xs bg-green-900 bg-opacity-50 px-1 rounded" title="Ativos">${activeCount}</span>
+                                        <span class="text-xs bg-yellow-900 bg-opacity-50 px-1 rounded" title="Em Ativação">${activatingCount}</span>
+                                        <span class="text-xs bg-red-900 bg-opacity-50 px-1 rounded" title="Desativados">${inactiveCount}</span>
+                                    </div>
+                                </div>
+                                ${device.whatsappSlots.map((slot, index) => `
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs">${slot.type}</span>
+                                        <select data-device-id="${device.id}" data-slot-index="${index}" 
+                                            class="slot-select rounded text-xs ${'status-' + slot.status}">
+                                            ${statusOptions.map(opt => `
+                                                <option value="${opt.value}" ${slot.status === opt.value ? 'selected' : ''}>
+                                                    ${opt.label}
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+                
+                // Add event listeners for phone number formatting
+                document.querySelectorAll('.phone-input').forEach(input => {
+                    input.addEventListener('input', function(e) {
+                        this.value = formatPhoneNumber(this.value);
+                    });
+                });
+                
+                // Add event listeners for save buttons
+                document.querySelectorAll('[data-field]').forEach(element => {
+                    if (element.tagName === 'BUTTON') {
+                        element.addEventListener('click', function() {
+                            const deviceId = parseInt(this.getAttribute('data-device-id'));
+                            const field = this.getAttribute('data-field');
+                            const input = document.querySelector(`input[data-device-id="${deviceId}"][data-field="${field}"]`) || 
+                                          document.querySelector(`select[data-device-id="${deviceId}"][data-field="${field}"]`);
+                            
+                            const device = devices.find(d => d.id === deviceId);
+                            if (device) {
+                                device[field] = input.value;
+                                device.lastUpdated = new Date().toISOString();
+                                saveDevices();
+                                showToast('Alterações salvas com sucesso!');
+                            }
+                        });
+                    }
+                });
+                
+                // Add event listeners for select changes (supervisor and whatsapp slots)
+                document.querySelectorAll('select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const deviceId = parseInt(this.getAttribute('data-device-id'));
+                        const field = this.getAttribute('data-field');
+                        const slotIndex = this.getAttribute('data-slot-index');
+                        
+                        const device = devices.find(d => d.id === deviceId);
+                        if (device) {
+                            if (field === 'supervisor') {
+                                device.supervisor = this.value;
+                            } else if (slotIndex !== null) {
+                                device.whatsappSlots[slotIndex].status = this.value;
+                            }
+                            device.lastUpdated = new Date().toISOString();
+                            saveDevices();
+                            showToast('Alterações salvas com sucesso!');
+                            
+                            // Update the UI immediately if it's a filtered view
+                            if (filteredDevices) {
+                                renderDevices(filteredDevices);
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Filter devices
+            function filterDevices() {
+                const supervisorFilter = document.getElementById('supervisor-filter').value;
+                const statusFilter = document.getElementById('status-filter').value;
+                const phoneFilter = document.getElementById('phone-filter').value.toLowerCase();
+                
+                let filtered = [...devices];
+                
+                if (supervisorFilter) {
+                    filtered = filtered.filter(d => d.supervisor === supervisorFilter);
+                }
+                
+                if (statusFilter) {
+                    filtered = filtered.filter(d => 
+                        d.whatsappSlots.some(slot => slot.status === statusFilter)
+                    );
+                }
+                
+                if (phoneFilter) {
+                    filtered = filtered.filter(d => 
+                        d.phoneNumber.toLowerCase().includes(phoneFilter)
+                    );
+                }
+                
+                renderDevices(filtered);
+                updateStats();
+            }
+            
+            // Initialize
+            loadDevices();
+            
+            // Event listeners for filters
+            document.getElementById('apply-filter').addEventListener('click', filterDevices);
+            
+            // Allow Enter key to apply filters
+            document.getElementById('phone-filter').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterDevices();
+                }
+            });
+            
+            // FAB (Floating Action Button) event listener
+            document.getElementById('fab').addEventListener('click', function() {
+                // Refresh the view
+                document.getElementById('supervisor-filter').value = '';
+                document.getElementById('status-filter').value = '';
+                document.getElementById('phone-filter').value = '';
+                loadDevices();
+                showToast('Dados atualizados com sucesso!');
+                
+                // Add a little animation
+                this.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
